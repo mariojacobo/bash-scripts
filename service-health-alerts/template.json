@@ -1,0 +1,69 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "actionGroupResourceId": {
+            "defaultValue": "ServiceHealth",
+            "type": "String"
+        },
+        "activityLogAlertName": {
+            "defaultValue": "ServiceHealthActivityLogAlert",
+            "type": "String"
+        }
+    },
+    "variables": {
+        "alertScope": "[concat('/','subscriptions','/',subscription().subscriptionId)]"
+    },
+    "resources": [
+        {
+            "comments": "Service Health Activity Log Alert",
+            "type": "microsoft.insights/activityLogAlerts",
+            "name": "[parameters('activityLogAlertName')]",
+            "apiVersion": "2017-04-01",
+            "location": "Global",
+            "tags": {},
+            "scale": null,
+            "properties": {
+                "scopes": [
+                    "[variables('alertScope')]"
+                ],
+                "condition": {
+                    "allOf": [
+                        {
+                            "field": "category",
+                            "equals": "ServiceHealth"
+                        },
+                        {
+                            "field": "properties.incidentType",
+                            "equals": "Informational"
+                        },
+                        {
+                            "field": "properties.incidentType",
+                            "equals": "Incident"
+                        },
+                        {
+                            "field": "properties.incidentType",
+                            "equals": "Maintenance"
+                        },
+                        {
+                            "field": "properties.impactedServices[*].ImpactedRegions[*].RegionName",
+                            "equals": null,
+                            "containsAny": [
+                                "East US"
+                            ]
+                        }
+                    ]
+                },
+                "actions": {
+                    "actionGroups": [
+                        {
+                            "actionGroupId": "[parameters('actionGroupResourceId')]"
+                        }
+                    ]
+                },
+                "enabled": true,
+                "description": ""
+            }
+        }
+    ]
+}
